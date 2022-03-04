@@ -1,6 +1,8 @@
 using Plots 
 using Base 
 using Random 
+using Symbolics
+using DiffRules
 
 struct Interval
 	l::Real
@@ -12,6 +14,8 @@ end
 function Base.:+(x₁::Interval, x₂::Interval)
 	s = Interval(x₁.l + x₂.l,x₁.u + x₂.u)
     end
+
+
 
 function Base.:+(x₁::Real, x₂::Interval)
 	s = Interval(x₁ + x₂.l,x₁ + x₂.u)
@@ -78,8 +82,8 @@ function Base.:/(x₁::Interval, x₂::Interval)
 	d = x₁ * Interval(1/x₂.u,1/x₂.l)
     end
 
-function Base.:/(x₁::Real, b::Interval)
-	d = Interval(x₁/b.u,x₁/b.l)
+function Base.:/(x₁::Real, x₂::Interval)
+	d = Interval(x₁/x₂.u,x₁/x₂.l)
     end
 
 function Base.:/(x₁::Interval, x₂::Real)
@@ -341,24 +345,34 @@ function plot_boxes(L,Lᵣ)
 end
 
 
-function g(x₁,x₂)
-	return log((1-x₁)^2 + 100*(x₂-x₁^2)^2) 
+function g(x1,x2)
+	return x1*exp(x1+x2^2)-x2^2
 end
 
-function g_opt(x)
-	return g(x[1],x[2])
+function g_vec(X)
+	return g(X[1],X[2])
 end
 
-X = [Interval(-3,3),Interval(-3,3)]
 
-x₁ = range(X[1].l,X[1].u,300)
-x₂ = range(X[2].l,X[2].u,300)
+function mean_value_form(f,∇f,X)
+	∇f([Interval(1,2),Interval(0,1)])
+	mean = m(X)
+	fₘ = f(mean)
+	mv = fₘ + sum(D[i]*(X[i]-mean[i]) for i ∈ 1:length(X))
+end
 
-L,Lᵣ = skelboe_moore(g_opt,X)
-plot()
-contourf!(x₁,x₂,g,c=:viridis,linewidth=0,levels=40)
-plot_boxes(L,Lᵣ)
-display(plot!())
+function build_gradient(f,len_x)
+	@variables x[1:len_x]
+	∇f = Symbolics.gradient(f(x),[x[i] for i ∈ 1:len_x])
+	∇f_expr = build_function(∇f, x)
+	∇f = eval(∇f_expr[1])
+	return ∇f
+end 
+
+∇g = build_gradient(g,2)
+X = [Interval(1,2),Interval(0,1)]
+mean_value_form(g,∇g,X)
+
 
 
 

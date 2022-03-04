@@ -8,4 +8,4 @@
 
 A lightweight interval analysis library written in Julia, mainly for playing around with. Will be improved.
 
-Author - Tom Savage, 04/03/2022
+```Tom Savage, 04/03/2022```

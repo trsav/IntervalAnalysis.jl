@@ -366,8 +366,6 @@ function g_vec(X)
 end
 
 
-
-
 # f(x) = x^3 - x^2 
 # ∇f = build_gradient(f,1)
 # plot_refinement(Interval(0,1),f,∇f,20)

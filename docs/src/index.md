@@ -2,15 +2,14 @@
 
 ```@contents
 ```
-
-## Interval Type 
+## Interval Type
 ```@docs
 Interval
 ```
 
-## Functions 
-```@docs
-Interval
+## Functions
+```@docs 
+Base.:*
 ```
 
 ## Index

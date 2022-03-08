@@ -1,4 +1,4 @@
-# Tom Savage's Interval Analysis
+# Interval Analysis
 
 ```@contents
 ```

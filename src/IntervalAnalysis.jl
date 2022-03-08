@@ -1,12 +1,11 @@
 module IntervalAnalysis
-
 using Plots 
 using Base 
 using Random 
 using Symbolics
-using DiffRules
+using Documenter
 
-export Interval
+export Interval,*
 
 """
     Interval
@@ -60,6 +59,18 @@ function Base.:-(x₁::Interval, x₂::Real)
 	Interval(x₁ - x₂.l,x₁ - x₂.u)
     end
 
+"""
+
+	*(x₁::Interval, x₂::Interval)
+
+Multiplies two intervals
+
+# Examples
+```jldoctest
+julia> Interval(-1,1) * Interval(-2,4)
+-4.0 ←-→ 4.0
+```
+"""
 function Base.:*(x₁::Interval, x₂::Interval)
 	if 0 ≤ x₁.l 
 		if 0 ≤ x₂.l 
@@ -356,14 +367,10 @@ end
 
 
 
-f(x) = x^3 - x^2 
-∇f = build_gradient(f,1)
-plot_refinement(Interval(0,1),f,∇f,20)
-mean_value_form(f,∇f,Interval(0,1))
 
+# f(x) = x^3 - x^2 
+# ∇f = build_gradient(f,1)
+# plot_refinement(Interval(0,1),f,∇f,20)
+# mean_value_form(f,∇f,Interval(0,1))
 
-
-
-
-
-
+end

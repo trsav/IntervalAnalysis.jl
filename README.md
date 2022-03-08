@@ -7,3 +7,5 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) 
 
 A lightweight interval analysis library written in Julia, mainly for playing around with. Will be improved.
+
+Documentation - [https://trsav.github.io/IntervalAnalysis.jl/](https://trsav.github.io/IntervalAnalysis.jl/)

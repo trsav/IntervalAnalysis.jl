@@ -31,7 +31,7 @@ Base.show(io::IO, x::Interval) = print(io,round(x.l,digits=6)," ←-→ ",round(
 
 """
 
-+(x₁::Interval, x₂::Interval)
+	+(x₁::Interval, x₂::Interval)
 
 Adds two intervals
 
@@ -133,7 +133,7 @@ end
 
 """
 
-/(x₁::Interval, x₂::Interval)
+	/(x₁::Interval, x₂::Interval)
 
 Divides two intervals
 
@@ -228,7 +228,7 @@ end
 
 """
 
-subdivide(x::Interval,N::Integer)
+	subdivide(x::Interval,N::Integer)
 
 Subdivides an interval into N intervals.
 

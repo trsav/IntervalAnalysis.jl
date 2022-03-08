@@ -5,7 +5,7 @@ using Random
 using Symbolics
 using Documenter
 
-export Interval,*
+export Interval,*,+,-,subdivide
 
 """
     Interval
@@ -29,6 +29,18 @@ end
 
 Base.show(io::IO, x::Interval) = print(io,round(x.l,digits=6)," ←-→ ",round(x.u,digits=6))
 
+"""
+
++(x₁::Interval, x₂::Interval)
+
+Adds two intervals
+
+# Examples
+```jldoctest
+julia> Interval(-1,1) + Interval(-2,4)
+-3.0 ←-→ 5.0
+```
+"""
 function Base.:+(x₁::Interval, x₂::Interval)
 	Interval(x₁.l + x₂.l,x₁.u + x₂.u)
     end
@@ -43,6 +55,18 @@ function Base.:+(x₁::Interval, x₂::Real)
 	Interval(x₁.l + x₂,x₁.u + x₂)
     end
 
+ """
+
+	-(x₁::Interval, x₂::Interval)
+
+Subtracts one interval from another
+
+# Examples
+```jldoctest
+julia> Interval(-1,1) - Interval(-2,4)
+-5.0 ←-→ 3.0
+```
+"""
 function Base.:-(x₁::Interval, x₂::Interval)
 	Interval(x₁.l - x₂.u,x₁.u - x₂.l)
     end
@@ -107,7 +131,18 @@ function Base.:*(x₁::Real,x₂::Interval)
 	Interval(x₁*x₂.l,x₁*x₂.u)
 end
 
+"""
 
+/(x₁::Interval, x₂::Interval)
+
+Divides two intervals
+
+# Examples
+```jldoctest
+julia> Interval(-1,1) / Interval(-2,4)
+-0.5 ←-→ 0.5
+```
+"""
 function Base.:/(x₁::Interval, x₂::Interval)
 	x₁ * Interval(1/x₂.u,1/x₂.l)
     end
@@ -191,7 +226,18 @@ function qdist(x₁::Interval,x₂::Interval)
 	max(abs(x₁.l-x₂.l),abs(x₁.u-x₂.u))
 end
 
+"""
 
+subdivide(x::Interval,N::Integer)
+
+Subdivides an interval into N intervals.
+
+# Examples
+```jldoctest
+julia> subdivide(Interval(0,1),5)
+[0.0 ←-→ 0.2, 0.2 ←-→ 0.4, 0.4 ←-→ 0.6, 0.6 ←-→ 0.8, 0.8 ←-→ 1.0]
+```
+"""
 function subdivide(x::Interval,N::Integer)
 	A = Array{Interval}(undef,N)
 	w_x = w(x)/N
@@ -366,9 +412,9 @@ function g_vec(X)
 end
 
 
-# f(x) = x^3 - x^2 
+# f(x) = x^3 - x^2
 # ∇f = build_gradient(f,1)
 # plot_refinement(Interval(0,1),f,∇f,20)
-# mean_value_form(f,∇f,Interval(0,1))
+# print(Interval(-1,1) / Interval(-2,4))
 
 end

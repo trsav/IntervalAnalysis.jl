@@ -1,44 +1,63 @@
+module IntervalAnalysis
+
 using Plots 
 using Base 
 using Random 
 using Symbolics
 using DiffRules
 
+export Interval
+
+"""
+    Interval
+
+Defines a single interval between two real numbers.
+
+# Examples
+```jldoctest
+julia> Interval(-1,1)
+-1.0 ←-→ 1.0
+```
+"""
 struct Interval
+	"Lower interval value"
 	l::Real
+	"Upper interval value"
 	u::Real
 	Interval(l,u) = l > u ? new(u,l) : new(l,u)
 	
 end
 
+Base.show(io::IO, x::Interval) = print(io,round(x.l,digits=6)," ←-→ ",round(x.u,digits=6))
+
 function Base.:+(x₁::Interval, x₂::Interval)
-	s = Interval(x₁.l + x₂.l,x₁.u + x₂.u)
+	Interval(x₁.l + x₂.l,x₁.u + x₂.u)
     end
 
 
 
 function Base.:+(x₁::Real, x₂::Interval)
-	s = Interval(x₁ + x₂.l,x₁ + x₂.u)
+	Interval(x₁ + x₂.l,x₁ + x₂.u)
     end
 
 function Base.:+(x₁::Interval, x₂::Real)
-	s = Interval(x₁.l + x₂,x₁.u + x₂)
+	Interval(x₁.l + x₂,x₁.u + x₂)
     end
 
 function Base.:-(x₁::Interval, x₂::Interval)
-	s = Interval(x₁.l - x₂.u,x₁.u - x₂.l)
+	Interval(x₁.l - x₂.u,x₁.u - x₂.l)
     end
 
 function Base.:-(x::Interval)
-	s = Interval(-x.l,-x.u)
+	Interval(-x.l,-x.u)
     end
 
 function Base.:-(x₁::Interval, x₂::Real)
-	s = Interval(x₁.l - x₂,x₁.u - x₂)
+	Interval(x₁.l - x₂,x₁.u - x₂)
     end
 
     function Base.:-(x₁::Real, x₂::Interval)
-	s = Interval(x₁ - x₂.l,x₁ - x₂.u)
+	Interval(x₁ - x₂.l,x₁ - x₂.u)
     end
 
 function Base.:*(x₁::Interval, x₂::Interval)
@@ -70,42 +89,41 @@ function Base.:*(x₁::Interval, x₂::Interval)
 end
 
 function Base.:*(x₁::Interval,x₂::Real)
-	s = Interval(x₁.l*x₂,x₁.u*x₂)
+	Interval(x₁.l*x₂,x₁.u*x₂)
 end
 
 function Base.:*(x₁::Real,x₂::Interval)
-	s = Interval(x₁*x₂.l,x₁*x₂.l)
+	Interval(x₁*x₂.l,x₁*x₂.u)
 end
 
 
 function Base.:/(x₁::Interval, x₂::Interval)
-	d = x₁ * Interval(1/x₂.u,1/x₂.l)
+	x₁ * Interval(1/x₂.u,1/x₂.l)
     end
 
 function Base.:/(x₁::Real, x₂::Interval)
-	d = Interval(x₁/x₂.u,x₁/x₂.l)
+	Interval(x₁/x₂.u,x₁/x₂.l)
     end
 
 function Base.:/(x₁::Interval, x₂::Real)
-	d = Interval(x₁.l/x₂,x₁.u/x₂)
+	Interval(x₁.l/x₂,x₁.u/x₂)
     end
 
 function w(x::Interval)
-	d = x.u-x.l
+	x.u-x.l
 end
 
 function w(X::Vector{Interval})
 	widths = w.(X)
 	d,i = findmax(widths)
-	return d,i 
 end
 
 function m(x::Interval)
-	s = (x.u+x.l)/2
+	(x.u+x.l)/2
 end
 
 function m(X::Vector{Interval})
-	s = m.(X)
+	m.(X)
 end
 
 
@@ -124,19 +142,19 @@ function Base.:^(x::Interval,p::Integer)
 end
 
 function Base.exp(x::Interval)
-	e = Interval(exp(x.l),exp(x.u))
+	Interval(exp(x.l),exp(x.u))
 end
 
 function Base.log(x::Interval)
-	l = Interval(log(x.l),log(x.u))
+	Interval(log(x.l),log(x.u))
 end
 
 function Base.log10(x::Interval)
-	l = Interval(log10(x.l),log10(x.u))
+	Interval(log10(x.l),log10(x.u))
 end
 
 function Base.log2(x::Interval)
-	l = Interval(log2(x.l),log2(x.u))
+	Interval(log2(x.l),log2(x.u))
 end
 
 function Base.sin(x::Interval)
@@ -195,84 +213,32 @@ end
 function hull(X::Vector{Interval})
 	l = [x.l for x ∈ X]
 	u = [x.u for x ∈ X]
-	return Interval(minimum(l),maximum(u))
+	Interval(minimum(l),maximum(u))
 end
 
 function refinement(x,f,N)
 	X = subdivide(x,N)
 	Y = f.(X)
-	return hull(Y)
+	hull(Y)
 end
 
-function plot_refinement(x,f,N)
+function plot_refinement(x,f,∇f,N)
 	plot(f,x.l,x.u,c="black",linewidth=3,label="")
 	X = subdivide(x,N)
-	Y = f.(X)
+	Y = f.(X)	
+	Yₘᵥ = mean_value_form.(f,∇f,X)
 	for i ∈ 1:length(X)
-		plot!([X[i].l,X[i].u],[Y[i].l,Y[i].l],fillrange=[Y[i].u,Y[i].u],linewidth=0,c="black",label="",fillalpha=0.35)
+		if i == 1
+			plot!([X[i].l,X[i].u],[Y[i].l,Y[i].l],fillrange=[Y[i].u,Y[i].u],linewidth=0,c="black",label="Interval Extension",fillalpha=0.15)
+			plot!([X[i].l,X[i].u],[Yₘᵥ[i].l,Yₘᵥ[i].l],fillrange=[Yₘᵥ[i].u,Yₘᵥ[i].u],linewidth=0,c="red",label="Mean Value Form",fillalpha=0.25)
+		else
+			plot!([X[i].l,X[i].u],[Y[i].l,Y[i].l],fillrange=[Y[i].u,Y[i].u],linewidth=0,c="black",label="",fillalpha=0.15)
+			plot!([X[i].l,X[i].u],[Yₘᵥ[i].l,Yₘᵥ[i].l],fillrange=[Yₘᵥ[i].u,Yₘᵥ[i].u],linewidth=0,c="red",label="",fillalpha=0.25)
+		end
+
 	end
-
-	display(plot!())
+	display(plot!(dpi=600))
 end
-
-function skelboe_moore_1D(f,x,ϵ)
-	x₀ = x # initial interval
-	fᵤ = f(x).u # smallest upper bound (AKA the only upper bound at this stage)
-
-	# creating a store of intervals, mean values, and interval values 
-	L = [Dict("X"=>x,"f_m"=>f(m(x)),"F"=>f(x))]
-
-	# for a number of iterations...
-	for it ∈ 1:10
-	
-		# initialise list of intervals to sack off 
-		del_index =[]
-		for i in 1:length(L)
-			# if the lowest interval value is above the smallest upper bound..
-			if L[i]["F"].l > fᵤ
-				# remove interval, we know global minimum is not here...
-				push!(del_index,i)
-			end
-		end
-
-		# delete all the ones we said we would 
-		deleteat!(L,del_index)
-
-
-		# pick the remaining interval with smallest mean value 	
-		s = argmin([l["f_m"] for l ∈ L])
-
-		# divide the interval into two 
-		X_s = subdivide(L[s]["X"],2)
-		# get rid of the containing interval 
-		deleteat!(L,s)
-
-		for x ∈ X_s
-			# evaluate interval values 
-			F = f(x)
-
-			# check if we find a smallest upper bound 
-			if F.u < fᵤ
-				fᵤ = F.u
-			end
-			# add new interval information to store
-			push!(L,Dict("X"=>x,"f_m"=>f(m(x)),"F"=>F))
-		end
-
-
-		# plot the current iteration!
-		plot(f,x.l,x.u,c="black",linewidth=3,label="",xlims=[x₀.l,x₀.u])
-		# plotting intervals with interval values 
-		for i ∈ 1:length(L)
-			plot!([L[i]["X"].l,L[i]["X"].u],[L[i]["F"].l,L[i]["F"].l],fillrange=[L[i]["F"].u,L[i]["F"].u],linewidth=0,c="black",label="",fillalpha=0.35)
-		end
-		display(plot!())
-	end
-
-
-	
-end
-
 
 function skelboe_moore(f,X)
 
@@ -345,6 +311,41 @@ function plot_boxes(L,Lᵣ)
 end
 
 
+
+
+function mean_value_form(f,∇f,X)
+	if typeof(X) == Interval
+		D = ∇f(X)[1]
+	else
+		D = ∇f(X)
+	end
+	mean = m(X)
+	fₘ = f(mean)
+	if typeof(X) == Interval
+		return fₘ + D*(X-mean)
+	else
+		return fₘ + sum(D[i]*(X[i]-mean[i]) for i ∈ 1:length(X))
+	end
+
+end
+
+function build_gradient(f,len_x)
+	if len_x > 1
+		@variables x[1:len_x]
+		∇f = Symbolics.gradient(f(x),[x[i] for i ∈ 1:len_x])
+		∇f_expr = build_function(∇f, x)
+		∇f = eval(∇f_expr[1])
+		return ∇f
+	else
+		@variables x
+		∇f = Symbolics.gradient(f(x),[x])
+		∇f_expr = build_function(∇f, x)
+		∇f = eval(∇f_expr[1])
+		return ∇f
+	end
+
+end 
+
 function g(x1,x2)
 	return x1*exp(x1+x2^2)-x2^2
 end
@@ -354,25 +355,11 @@ function g_vec(X)
 end
 
 
-function mean_value_form(f,∇f,X)
-	∇f([Interval(1,2),Interval(0,1)])
-	mean = m(X)
-	fₘ = f(mean)
-	mv = fₘ + sum(D[i]*(X[i]-mean[i]) for i ∈ 1:length(X))
-end
 
-function build_gradient(f,len_x)
-	@variables x[1:len_x]
-	∇f = Symbolics.gradient(f(x),[x[i] for i ∈ 1:len_x])
-	∇f_expr = build_function(∇f, x)
-	∇f = eval(∇f_expr[1])
-	return ∇f
-end 
-
-∇g = build_gradient(g,2)
-X = [Interval(1,2),Interval(0,1)]
-mean_value_form(g,∇g,X)
-
+f(x) = x^3 - x^2 
+∇f = build_gradient(f,1)
+plot_refinement(Interval(0,1),f,∇f,20)
+mean_value_form(f,∇f,Interval(0,1))
 
 
 
